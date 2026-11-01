@@ -8,7 +8,7 @@ import { extractGrokTail } from "@/lib/nai-tags";
 import { compressRef, isImageFile } from "@/lib/ref-image";
 import { saveBlob, useApp } from "@/lib/store";
 import type { Chat, GenImage, LlmAccount, WechatAttach, WechatLine, WechatLog, WechatSession, WechatSticker } from "@/lib/types";
-import { emptyWechatSession, ensureMultiSession, describeSticker, lineImages, paintWechat, queueStickerBrief, regenWechat, regenContinueFrom, sendWechat, continueWechat, sessionHasLines, summarizeWechat, WECHAT_GROUP, wechatIsMulti, wechatTurnText, cancelWechatImage, wechatRoute } from "@/lib/wechat";
+import { emptyWechatSession, ensureMultiSession, describeSticker, lineImages, paintWechat, queueStickerBrief, regenWechat, regenContinueFrom, sendWechat, continueWechat, cancelWechat, sessionHasLines, summarizeWechat, WECHAT_GROUP, wechatIsMulti, wechatTurnText, cancelWechatImage, wechatRoute } from "@/lib/wechat";
 import { autoScrollNearEdge, downloadBlob, indexFromY, moveId, nearestScroller, uid } from "@/lib/utils";
 import { ImagePick } from "./ImagePick";
 import { ChatAvatar, useCooldown } from "./ui-kit";
@@ -376,11 +376,17 @@ function WechatLive({ chat, session }: { chat: Chat; session: WechatSession }) {
             <button
               type="button"
               className="grid size-9 shrink-0 place-items-center rounded-md bg-[#95EC69] text-black disabled:opacity-40"
-              aria-label="发送"
-              disabled={phase === "sum" || (!draft.trim() && !pending.length)}
-              onClick={send}
+              aria-label={phase === "type" ? "停止" : "发送"}
+              disabled={phase === "sum" || (phase !== "type" && !draft.trim() && !pending.length)}
+              onClick={() => {
+                if (phase === "type") {
+                  cancelWechat(chat.id);
+                  return;
+                }
+                send();
+              }}
             >
-              <ArrowUp className="size-5" />
+              {phase === "type" ? <span className="size-2.5 rounded-[2px] bg-neutral-600" /> : <ArrowUp className="size-5" />}
             </button>
           </div>
           {editFrom ? (

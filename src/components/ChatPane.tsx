@@ -35,7 +35,7 @@ import { SceneBackdrop } from "./LookSheet";
 import { parseReplyMarkup, type ReplyFold } from "@/lib/reply-markup";
 import type { Chat, ChatMessage, GenImage, ImageGenSource, MultiMode, PromptInsertMode, UserShot } from "@/lib/types";
 import { CHAT_SHOT_MAX, messageShots } from "@/lib/user-markup";
-import { attachImage, branchFrom, cancelImage, cancelMemory, editMessage, regenMessage, retryMemory, sendUser } from "./chat-actions";
+import { attachImage, abortChat, branchFrom, cancelImage, cancelMemory, editMessage, regenMessage, replyPending, retryMemory, sendUser } from "./chat-actions";
 import { ChatModelSelect } from "./ModelSelect";
 import { ChatAvatar, ExpandSelect, Modal, TextArea, useCooldown, ZoomImg } from "./ui-kit";
 
@@ -305,7 +305,8 @@ export function ChatPane({ chat }: { chat: Chat }) {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                send();
+                if (replyPending(chat.id)) abortChat(chat.id);
+                else send();
               }
             }}
             rows={1}
@@ -330,11 +331,17 @@ export function ChatPane({ chat }: { chat: Chat }) {
             )}
           />
           <button
-            onClick={send}
+            onClick={() => {
+              if (replyPending(chat.id)) {
+                abortChat(chat.id);
+                return;
+              }
+              send();
+            }}
             className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-on-primary"
-            aria-label={editUser ? "保存" : "发送"}
+            aria-label={replyPending(chat.id) ? "停止" : editUser ? "保存" : "发送"}
           >
-            <ArrowUp className="size-5" />
+            {replyPending(chat.id) ? <span className="size-2.5 rounded-[2px] bg-on-primary" /> : <ArrowUp className="size-5" />}
           </button>
         </div>
         {editUser ? (

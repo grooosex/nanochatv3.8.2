@@ -1156,6 +1156,27 @@ function PresetSheet({ onClose }: { onClose: () => void }) {
     useApp.getState().toast("已还原");
   };
 
+  const restoreItems = () => {
+    if (!preset?.items?.length) return;
+    let switches = true;
+    patchActivePreset((p) => {
+      if (!p.items?.length) return p;
+      return sealPreset({
+        ...p,
+        items: p.items.map((row) => {
+          const content = typeof row.original === "string" ? row.original : row.content;
+          if (typeof row.originalEnabled !== "boolean") {
+            switches = false;
+            return { ...row, content };
+          }
+          return { ...row, content, enabled: row.originalEnabled };
+        }),
+      });
+    });
+    setEdit(null);
+    useApp.getState().toast(switches ? "已还原" : "已还原文字。这份是以前导入的，开关要重新导入才能回到最初。");
+  };
+
   const setMode = (mode: "new" | "old") => {
     useApp.getState().setSettings({ stPresetMode: mode });
     if (mode === "old" && preset && !hasLegacy) {
@@ -1281,7 +1302,27 @@ function PresetSheet({ onClose }: { onClose: () => void }) {
         onLock={(v) => patchParam({ contextTurnsLocked: v })}
         onChange={(n) => patchParam({ contextTurns: n })}
       />
-      <div className="mb-2 mt-4 text-[14px] font-medium">内容开关</div>
+      <div className="mb-2 mt-4 flex items-center justify-between">
+        <span className="text-[14px] font-medium">内容开关</span>
+        {preset?.items?.length ? (
+          <button
+            type="button"
+            className="grid size-8 place-items-center text-muted"
+            aria-label="还原内容开关"
+            onClick={() =>
+              useApp.getState().setUI({
+                confirm: {
+                  title: "还原内容开关",
+                  body: "文字和开关都会回到导入时的样子。改过的内容会丢掉。",
+                  onOk: restoreItems,
+                },
+              })
+            }
+          >
+            <RotateCcw className="size-4" />
+          </button>
+        ) : null}
+      </div>
       {oldMode ? <p className="mb-2 text-[12px] leading-relaxed text-muted">旧版不看这些开关。要改内容，请切回新版方法。</p> : null}
       {!preset ? (
         <p className="text-[12px] text-muted">先选择一份预设。</p>

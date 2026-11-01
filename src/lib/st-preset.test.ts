@@ -134,6 +134,8 @@ describe("st chat completion preset", () => {
     );
     assert.equal(p.items?.find((item) => item.name === "防截断")?.usable, true);
     assert.equal(p.items?.find((item) => item.name === "防截断")?.original, "写完整");
+    assert.equal(p.items?.find((item) => item.name === "防截断")?.originalEnabled, false);
+    assert.equal(p.items?.find((item) => item.name === "开着")?.originalEnabled, true);
     assert.equal(p.items?.find((item) => item.name === "防截断2.0")?.usable, false);
     assert.equal(p.systemPrompt.includes("不要发"), false);
     assert.equal(p.systemPrompt.includes("不在表里"), false);

@@ -87,6 +87,20 @@ export function abortChat(id: string) {
     }
   }
   invalidateMemory(id);
+  busy.delete(id);
+  const last = chat(id)?.messages.at(-1);
+  if (!last || last.role === "user" || last.content.trim()) return;
+  patch(id, (ch) => {
+    const tail = ch.messages.at(-1);
+    if (!tail || tail.id !== last.id || tail.content.trim()) return ch;
+    return { ...ch, messages: ch.messages.slice(0, -1) };
+  });
+}
+
+export function replyPending(id: string) {
+  if (!busy.has(id)) return false;
+  const last = chat(id)?.messages.at(-1);
+  return Boolean(last && last.role !== "user" && !last.content.trim());
 }
 
 export function cancelImage(chatId: string, msgId: string) {

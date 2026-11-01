@@ -47,6 +47,7 @@ function parseItems(raw: unknown): StPromptItem[] | undefined {
       place: o.place === "after" ? "after" : "before",
       usable: o.usable !== false,
       ...(typeof o.original === "string" ? { original: o.original } : {}),
+      ...(typeof o.originalEnabled === "boolean" ? { originalEnabled: o.originalEnabled } : {}),
     });
   }
   return out;
@@ -281,6 +282,7 @@ export function parseChatCompletionPreset(raw: unknown, fileName: string): StPre
       content: p.content,
       original: p.content,
       enabled: p.enabled,
+      originalEnabled: p.enabled,
       place: history ? "before" : place,
       usable: !isUnusable(p),
     });

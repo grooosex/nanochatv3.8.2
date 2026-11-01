@@ -382,6 +382,8 @@ export interface StPromptItem {
   content: string;
   /** 导入时的原文。只给还原按钮用，不会发给模型。 */
   original?: string;
+  /** 导入时的开关。只给还原按钮用，不会发给模型。 */
+  originalEnabled?: boolean;
   enabled: boolean;
   /** before：聊天记录前面。after：聊天记录后面。 */
   place: "before" | "after";

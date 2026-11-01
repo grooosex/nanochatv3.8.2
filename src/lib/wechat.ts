@@ -565,12 +565,17 @@ async function maybeFold(chatId: string, signal?: AbortSignal) {
 const busy = new Set<string>();
 const jobs = new Map<string, number>();
 const textStops = new Map<string, AbortController>();
+const textHalt = new Set<string>();
 const imageStops = new Map<string, AbortController>();
 
 function takeJob(chatId: string) {
   textStops.get(chatId)?.abort();
   const signal = new AbortController();
   textStops.set(chatId, signal);
+  if (textHalt.has(chatId)) {
+    textHalt.delete(chatId);
+    signal.abort();
+  }
   const job = (jobs.get(chatId) ?? 0) + 1;
   jobs.set(chatId, job);
   busy.add(chatId);
@@ -634,6 +639,12 @@ function cutAt(lines: WechatLine[], replaceFromId?: string) {
   if (idx >= 0) return base.slice(0, idx);
   const raw = lines.findIndex((line) => line.id === replaceFromId);
   return raw < 0 ? null : lines.slice(0, raw);
+}
+
+export function cancelWechat(chatId: string) {
+  const live = textStops.get(chatId);
+  if (live) live.abort();
+  else textHalt.add(chatId);
 }
 
 function stopKey(chatId: string, lineId: string) {
